@@ -1,6 +1,11 @@
 use aiken/collection/list.{is_empty as list_is_empty, any}
+use aiken/crypto.{ScriptHash}
 use aiken/primitive/bytearray.{is_empty}
-use cardano/transaction.{Transaction, OutputReference}
+use cardano/address.{from_script}
+use cardano/transaction.{Transaction, OutputReference, Output,InlineDatum}
+
+const escaneo_acta: ScriptHash = "8a29308d58e1ea5a891bee550889533ae1148eba490a4624aab23366" 
+
 
 // Declarar todos los tipos utilizados en el validador como públicos
 pub type EstadoActa = Int
@@ -38,28 +43,10 @@ validator datos_acta() {
   // Manejador `spend` para validar la estructura del `Acta`
   spend(datum: Option<Acta>, redeemer: Int, _target: OutputReference, tx_info: Transaction) {
       expect Some(acta) = datum
+      datum_acta_valido(acta,redeemer) && datos_escaneo_acta_validos(tx_info.outputs, redeemer)
 
       // Validaciones necesarias para asegurar que el acta es válida.
-      let usuario_valido = validar_user_id(acta) && acta.user_id == redeemer
-      let codigo_valido = validar_codigo_acta(acta)
-      let timestamp_valido = validar_timestamp(acta)
-      let estado_valido = validar_estado(acta)
-      let hash_valido = validar_hash_anterior(acta)
-      let datos_valido = validar_datos(acta)
-      let ipfs_valido = validar_IPFS(acta)
-      let segmentos_valido = validar_segmentos(acta)
-      let candidatos_especiales_valido = validar_candidatos_especiales(acta.datos)
-
-      // Validación final que asegura que todos los criterios se cumplen.
-      usuario_valido 
-      && codigo_valido 
-      && timestamp_valido 
-      && estado_valido 
-      && hash_valido 
-      && datos_valido 
-      && ipfs_valido 
-      && segmentos_valido 
-      && candidatos_especiales_valido
+      
   }
 }
 
@@ -114,6 +101,66 @@ validator control_calidad_acta() {
         
         usuario_valido && calidad_valida
     }
+}
+
+fn datum_acta_valido(acta: Acta, redeemer: Int) -> Bool {
+      // Validaciones necesarias para asegurar que el acta es válida.
+    let usuario_valido = validar_user_id(acta) && acta.user_id == redeemer
+    let codigo_valido = validar_codigo_acta(acta)
+    let timestamp_valido = validar_timestamp(acta)
+    let estado_valido = acta.estado == 1
+    let hash_valido = validar_hash_anterior(acta)
+    let datos_valido = validar_datos(acta)
+    let ipfs_valido = validar_IPFS(acta)
+    let segmentos_valido = validar_segmentos(acta)
+    let candidatos_especiales_valido = validar_candidatos_especiales(acta.datos)
+
+      // Validación final que asegura que todos los criterios se cumplen.
+    usuario_valido 
+    && codigo_valido 
+    && timestamp_valido 
+    && estado_valido 
+    && hash_valido 
+    && datos_valido 
+    && ipfs_valido 
+    && segmentos_valido 
+    && candidatos_especiales_valido
+}
+
+fn datos_escaneo_acta_validos(outputs: List<Output>, redeemer: Int) -> Bool {
+    let counter = list.count(outputs, fn(output) { output.address == from_script(escaneo_acta) && 
+                                                   when output.datum is {
+                                                        InlineDatum(datum_data) -> validar_cambio_estado(datum_data,2, redeemer)
+                                                        _                       -> False
+                                                   }
+                                                 },
+    )
+
+  counter == 1
+}
+
+fn validar_cambio_estado(datum_data: Data, estado: Int, redeemer: Int) -> Bool {
+    expect acta: Acta = datum_data
+    let usuario_valido = validar_user_id(acta) && acta.user_id == redeemer
+    let codigo_valido = validar_codigo_acta(acta)
+    let timestamp_valido = validar_timestamp(acta)
+    let estado_valido = acta.estado == estado
+    let hash_valido = validar_hash_anterior(acta)
+    let datos_valido = validar_datos(acta)
+    let ipfs_valido = validar_IPFS(acta)
+    let segmentos_valido = validar_segmentos(acta)
+    let candidatos_especiales_valido = validar_candidatos_especiales(acta.datos)
+
+      // Validación final que asegura que todos los criterios se cumplen.
+      usuario_valido 
+      && codigo_valido 
+      && timestamp_valido 
+      && estado_valido 
+      && hash_valido 
+      && datos_valido 
+      && ipfs_valido 
+      && segmentos_valido 
+      && candidatos_especiales_valido
 }
 
 

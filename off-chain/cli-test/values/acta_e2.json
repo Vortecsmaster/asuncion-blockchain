@@ -1,0 +1,2 @@
+{"constructor":0,"fields":[{"bytes": "3833323737"}, {"int": 37}, {"int": 2},{"bytes": "AFDF" }, {"int": 1100 }, {"bytes": "FDFD"},{"list": [{"constructor":0,"fields":[{"int": 1}, {"bytes": "ABAB"}]}, {"constructor":0,"fields":[{"int": 2},{"bytes": "BABA"}]}]},{"list": [{"constructor": 0, "fields": [{"int":1 }, {"int": 100}]}, {"constructor": 0, "fields": [{"int":2 }, {"int": 200}]}]}]}
+
